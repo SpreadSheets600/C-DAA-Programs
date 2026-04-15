@@ -241,6 +241,7 @@ def render_config(sessions):
 
 def render_index(sessions):
     title, topics = parse_root_readme()
+    first_link = f"/exercises/{sessions[0][0]}" if sessions else "/"
 
     rows = "\n".join(
         f"| [{pretty_date(f)}](./exercises/{f}) | {topics.get(f, '')} |"
@@ -249,10 +250,22 @@ def render_index(sessions):
 
     return (
         "---\n"
-        f"title: {title}\n"
+        "layout: home\n"
+        "\n"
+        "hero:\n"
+        f'  name: "{title}"\n'
+        '  text: "Design & Analysis of Algorithms"\n'
+        "  tagline: Lab programs organized by session date.\n"
+        "  actions:\n"
+        "    - theme: brand\n"
+        "      text: View Exercises\n"
+        f"      link: {first_link}\n"
+        "    - theme: alt\n"
+        "      text: GitHub\n"
+        f"      link: {GITHUB_REPO}\n"
         "---\n"
         "\n"
-        f"# {title}\n"
+        "## Exercises\n"
         "\n"
         "| Date | Topic |\n"
         "|------|-------|\n"
