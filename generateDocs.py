@@ -1,47 +1,24 @@
 #!/usr/bin/env python3
-"""
-generateDocs.py
----------------
-Scans every session folder (DD-MM-YYYY), parses its README.md,
-and auto-generates the full VitePress documentation:
-
-  docs/sessions/<date>.md     - one page per session
-  docs/.vitepress/config.mjs  - sidebar + nav (rebuilt from all sessions)
-  docs/index.md               - home page with feature cards + session table
-
-Run locally:
-  python generateDocs.py
-
-CI/CD (GitHub Actions):
-  Called automatically before `npm run docs:build` on every push to main.
-  The three generated paths above are git-ignored; they are always rebuilt
-  fresh from the source-of-truth README files.
-"""
 
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
 
-# -- Project constants ---------------------------------------------------------
-
 ROOT = Path(__file__).parent
 DOCS = ROOT / "docs"
-SESSIONS_OUT = DOCS / "sessions"
+EXERCISES_OUT = DOCS / "exercises"
 VITEPRESS = DOCS / ".vitepress"
 
 REPO_BASE = "/C-DAA-Programs/"
 GITHUB_REPO = "https://github.com/SpreadSheets600/C-DAA-Programs"
-SITE_TITLE = "C · DAA Programs"
+SITE_TITLE = "C-DAA Programs"
 SITE_DESC = "Design and Analysis of Algorithms — Lab programs, algorithms, and annotated C code."
-
-# -- Helpers -------------------------------------------------------------------
 
 DATE_RE = re.compile(r"^\d{2}-\d{2}-\d{4}$")
 
 
 def parse_date(folder):
-    """Parse a DD-MM-YYYY folder name to a datetime, or None on failure."""
     try:
         return datetime.strptime(folder, "%d-%m-%Y")
     except ValueError:
@@ -49,59 +26,26 @@ def parse_date(folder):
 
 
 def pretty_date(folder):
-    """'10-04-2026' -> 'April 10, 2026'"""
     d = parse_date(folder)
     return d.strftime("%B %d, %Y") if d else folder
 
 
 def vitepress_slug(text):
-    """
-    Reproduce the VitePress / GitHub heading-anchor algorithm so that
-    sidebar deep-links point to the correct section.
-
-      'Exercise 1 : Binary Search With Iteration'
-        -> 'exercise-1-binary-search-with-iteration'
-    """
-    text = re.sub(r"<[^>]+>", "", text)  # strip HTML tags
+    text = re.sub(r"<[^>]+>", "", text)
     text = text.lower()
-    text = re.sub(r"[^\w\s-]", "", text)  # drop punctuation
-    text = re.sub(r"\s+", "-", text.strip())  # spaces -> hyphens
-    text = re.sub(r"-{2,}", "-", text)  # collapse double hyphens
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"\s+", "-", text.strip())
+    text = re.sub(r"-{2,}", "-", text)
     return text
 
 
-# -- README parser -------------------------------------------------------------
-
-
 def parse_readme(path):
-    """
-    Parse a session README.md into structured data.
-
-    Returns
-    -------
-    {
-      "title": str,
-      "exercises": [
-        {
-          "title":     str,
-          "slug":      str,
-          "algorithm": str,   # raw markdown
-          "code":      str,   # source code, no fences
-          "lang":      str,   # "c" or "cpp"
-          "output":    str,   # expected output, no fences
-        },
-        ...
-      ]
-    }
-    """
     text = path.read_text(encoding="utf-8")
 
     title_m = re.search(r"^#\s+(.+)$", text, re.M)
     title = title_m.group(1).strip() if title_m else path.parent.name
 
-    # Split on "## Exercise N : ..." headings
     parts = re.split(r"^(##\s+Exercise\s+\d+\s*:.*)$", text, flags=re.M)
-    # Layout: [intro, heading1, body1, heading2, body2, ...]
 
     exercises = []
     for i in range(1, len(parts), 2):
@@ -138,40 +82,23 @@ def parse_readme(path):
     return {"title": title, "exercises": exercises}
 
 
-# -- Page renderers ------------------------------------------------------------
+def parse_root_readme():
+    path = ROOT / "README.md"
+    if not path.exists():
+        return SITE_TITLE
+    text = path.read_text(encoding="utf-8")
+    title_m = re.search(r"^#\s+(.+)$", text, re.M)
+    return title_m.group(1).strip() if title_m else SITE_TITLE
 
 
-def render_session_page(folder, data):
-    """Generate a complete VitePress Markdown page for one session."""
-    date = pretty_date(folder)
+def render_exercise_page(folder, data):
+    title = data["title"]
     exs = data["exercises"]
     cpps = sorted(p.name for p in (ROOT / folder).glob("*.cpp"))
-    topics = " | ".join(e["title"] for e in exs)
 
     L = []
+    L += ["---", f'title: "{title}"', "---", "", f"# {title}", ""]
 
-    # Front matter
-    L += [
-        "---",
-        f'title: "{date}"',
-        f'description: "Lab exercises for {date} — {topics}"',
-        "---",
-        "",
-    ]
-
-    # Page title + overview
-    L += [
-        f"# {date}",
-        "",
-        "::: info Session Overview",
-        topics,
-        ":::",
-        "",
-        "---",
-        "",
-    ]
-
-    # One section per exercise
     for ex in exs:
         L += [f"## {ex['title']}", ""]
 
@@ -179,28 +106,13 @@ def render_session_page(folder, data):
             L += ["### Algorithm", "", ex["algorithm"], ""]
 
         if ex["code"]:
-            L += [
-                "### Code",
-                "",
-                f"```{ex['lang']}",
-                ex["code"],
-                "```",
-                "",
-            ]
+            L += ["### Code", "", f"```{ex['lang']}", ex["code"], "```", ""]
 
         if ex["output"]:
-            L += [
-                "### Output",
-                "",
-                "```bash",
-                ex["output"],
-                "```",
-                "",
-            ]
+            L += ["### Output", "", "```bash", ex["output"], "```", ""]
 
         L += ["---", ""]
 
-    # Compile & Run
     if cpps:
         L += ["## Compile & Run", "", "```bash"]
         for f in cpps:
@@ -225,21 +137,16 @@ def render_session_page(folder, data):
 
 
 def render_config(sessions):
-    """
-    Generate docs/.vitepress/config.mjs from all discovered sessions.
-    sessions: list of (folder_name, parsed_data) tuples.
-    """
-
     def sidebar_item(folder, data):
         date = pretty_date(folder)
         sub_lines = "\n".join(
-            f'            {{ text: "{e["title"]}", link: "/sessions/{folder}#{e["slug"]}" }},'
+            f'            {{ text: "{e["title"]}", link: "/exercises/{folder}#{e["slug"]}" }},'
             for e in data["exercises"]
         )
         return (
             f"        {{\n"
             f'          text: "{date}",\n'
-            f'          link: "/sessions/{folder}",\n'
+            f'          link: "/exercises/{folder}",\n'
             f"          collapsed: false,\n"
             f"          items: [\n"
             f"{sub_lines}\n"
@@ -248,10 +155,15 @@ def render_config(sessions):
         )
 
     sidebar_str = ",\n".join(sidebar_item(f, d) for f, d in sessions)
-    first_link = f"/sessions/{sessions[0][0]}" if sessions else "/"
+    first_link = f"/exercises/{sessions[0][0]}" if sessions else "/"
 
     return (
         'import { defineConfig } from "vitepress";\n'
+        "import {\n"
+        "  transformerNotationHighlight,\n"
+        "  transformerNotationFocus,\n"
+        "  transformerNotationDiff,\n"
+        '} from "@shikijs/transformers";\n'
         "\n"
         "export default defineConfig({\n"
         f'  base: "{REPO_BASE}",\n'
@@ -265,7 +177,7 @@ def render_config(sessions):
         "  ],\n"
         "\n"
         "  lastUpdated: true,\n"
-        "  cleanUrls:   true,\n"
+        "  cleanUrls: true,\n"
         "\n"
         "  markdown: {\n"
         "    theme: {\n"
@@ -273,20 +185,25 @@ def render_config(sessions):
         '      dark:  "one-dark-pro",\n'
         "    },\n"
         "    lineNumbers: true,\n"
+        "    codeTransformers: [\n"
+        '      transformerNotationHighlight({ matchAlgorithm: "v3" }),\n'
+        '      transformerNotationFocus({ matchAlgorithm: "v3" }),\n'
+        '      transformerNotationDiff({ matchAlgorithm: "v3" }),\n'
+        "    ],\n"
         "  },\n"
         "\n"
         "  themeConfig: {\n"
         '    logo: { src: "/favicon.svg", alt: "DAA" },\n'
         "\n"
         "    nav: [\n"
-        '      { text: "Home",     link: "/" },\n'
-        f'      {{ text: "Sessions", link: "{first_link}" }},\n'
-        f'      {{ text: "GitHub",   link: "{GITHUB_REPO}" }},\n'
+        '      { text: "Home", link: "/" },\n'
+        f'      {{ text: "Exercises", link: "{first_link}" }},\n'
+        f'      {{ text: "GitHub", link: "{GITHUB_REPO}" }},\n'
         "    ],\n"
         "\n"
         "    sidebar: [\n"
         "      {\n"
-        '        text: "Sessions",\n'
+        '        text: "Exercises",\n'
         "        items: [\n"
         f"{sidebar_str}\n"
         "        ],\n"
@@ -298,20 +215,20 @@ def render_config(sessions):
         '    search: { provider: "local" },\n'
         "\n"
         "    footer: {\n"
-        '      message:   "Design & Analysis of Algorithms — Lab Programs",\n'
+        '      message: "Design & Analysis of Algorithms — Lab Programs",\n'
         '      copyright: "Built with VitePress · SpreadSheets600",\n'
         "    },\n"
         "\n"
         "    editLink: {\n"
         f'      pattern: "{GITHUB_REPO}/edit/main/docs/:path",\n'
-        '      text:    "Edit this page on GitHub",\n'
+        '      text: "Edit this page on GitHub",\n'
         "    },\n"
         "\n"
-        '    outline:   { level: [2, 3], label: "On this page" },\n'
+        '    outline: { level: [2, 3], label: "On this page" },\n'
         "\n"
         "    docFooter: {\n"
-        '      prev: "Previous Session",\n'
-        '      next: "Next Session",\n'
+        '      prev: "Previous",\n'
+        '      next: "Next",\n'
         "    },\n"
         "  },\n"
         "});\n"
@@ -319,72 +236,26 @@ def render_config(sessions):
 
 
 def render_index(sessions):
-    """
-    Generate docs/index.md — the VitePress home page.
-    sessions: list of (folder_name, parsed_data) tuples.
-    """
-    first = sessions[0][0] if sessions else ""
+    title = parse_root_readme()
 
     rows = "\n".join(
-        "| [{date}](./sessions/{folder}) | {topics} |".format(
-            date=pretty_date(f),
-            folder=f,
-            topics=" | ".join(e["title"] for e in d["exercises"]),
-        )
+        f"| [{pretty_date(f)}](./exercises/{f}) | "
+        + " · ".join(e["title"] for e in d["exercises"])
+        + " |"
         for f, d in sessions
     )
 
-    return f"""\
----
-layout: home
-
-hero:
-  name: "C-DAA"
-  text: "Design & Analysis of Algorithms"
-  tagline: Lab programs, step-by-step algorithms, and annotated C code — organized by session date.
-  image:
-    src: /logo.svg
-    alt: C-DAA Programs
-  actions:
-    - theme: brand
-      text: Browse Sessions
-      link: /sessions/{first}
-    - theme: alt
-      text: View on GitHub
-      link: {GITHUB_REPO}
-
-features:
-  - title: Session-Based Organization
-    details: Every lab session lives in its own dated folder — easy to navigate, easy to reference during exams.
-
-  - title: Algorithm Walkthroughs
-    details: Each exercise includes a plain-English algorithm before the code so you understand the logic, not just the syntax.
-
-  - title: Annotated C Code
-    details: One Dark Pro syntax highlighting with line numbers — easy to read, easy to review.
-
-  - title: GCC and Turbo C++ Ready
-    details: All programs compile under GCC. Turbo C++ compatibility notes are included on every session page.
----
-
-<style>
-:root {{
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(135deg, #41d1ff 0%, #bd34fe 100%);
-  --vp-home-hero-image-background-image: linear-gradient(135deg, #41d1ff22 0%, #bd34fe22 100%);
-  --vp-home-hero-image-filter: blur(44px);
-}}
-</style>
-
-## Sessions
-
-| Date | Topics Covered |
-|------|----------------|
-{rows}
-"""
-
-
-# -- Entry point ---------------------------------------------------------------
+    return (
+        "---\n"
+        f"title: {title}\n"
+        "---\n"
+        "\n"
+        f"# {title}\n"
+        "\n"
+        "| Date | Exercises |\n"
+        "|------|-----------|\n"
+        f"{rows}\n"
+    )
 
 
 def main():
@@ -398,12 +269,10 @@ def main():
     )
 
     if not folders:
-        print(
-            "No session folders found (expected DD-MM-YYYY directories with a README.md)."
-        )
+        print("No exercise folders found.")
         sys.exit(0)
 
-    SESSIONS_OUT.mkdir(parents=True, exist_ok=True)
+    EXERCISES_OUT.mkdir(parents=True, exist_ok=True)
     VITEPRESS.mkdir(parents=True, exist_ok=True)
 
     sessions = []
@@ -411,8 +280,8 @@ def main():
         data = parse_readme(ROOT / folder / "README.md")
         sessions.append((folder, data))
 
-        out = SESSIONS_OUT / f"{folder}.md"
-        out.write_text(render_session_page(folder, data), encoding="utf-8")
+        out = EXERCISES_OUT / f"{folder}.md"
+        out.write_text(render_exercise_page(folder, data), encoding="utf-8")
         print(f"generated  {out.relative_to(ROOT)}")
 
     cfg_path = VITEPRESS / "config.mjs"
@@ -423,7 +292,7 @@ def main():
     idx_path.write_text(render_index(sessions), encoding="utf-8")
     print(f"generated  {idx_path.relative_to(ROOT)}")
 
-    print(f"done — {len(sessions)} session(s) processed.")
+    print(f"done — {len(sessions)} folder(s) processed.")
 
 
 if __name__ == "__main__":
