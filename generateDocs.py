@@ -85,10 +85,14 @@ def parse_readme(path):
 def parse_root_readme():
     path = ROOT / "README.md"
     if not path.exists():
-        return SITE_TITLE
+        return SITE_TITLE, {}
     text = path.read_text(encoding="utf-8")
     title_m = re.search(r"^#\s+(.+)$", text, re.M)
-    return title_m.group(1).strip() if title_m else SITE_TITLE
+    title = title_m.group(1).strip() if title_m else SITE_TITLE
+    topics = {}
+    for m in re.finditer(r"\[.*?\]\(\./(\d{2}-\d{2}-\d{4})/.*?\)\s*\[([^\]]+)\]", text):
+        topics[m.group(1)] = m.group(2).strip()
+    return title, topics
 
 
 def render_exercise_page(folder, data):
@@ -236,12 +240,10 @@ def render_config(sessions):
 
 
 def render_index(sessions):
-    title = parse_root_readme()
+    title, topics = parse_root_readme()
 
     rows = "\n".join(
-        f"| [{pretty_date(f)}](./exercises/{f}) | "
-        + " · ".join(e["title"] for e in d["exercises"])
-        + " |"
+        f"| [{pretty_date(f)}](./exercises/{f}) | {topics.get(f, '')} |"
         for f, d in sessions
     )
 
@@ -252,8 +254,8 @@ def render_index(sessions):
         "\n"
         f"# {title}\n"
         "\n"
-        "| Date | Exercises |\n"
-        "|------|-----------|\n"
+        "| Date | Topic |\n"
+        "|------|-------|\n"
         f"{rows}\n"
     )
 
