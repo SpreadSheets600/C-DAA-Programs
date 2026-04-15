@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="bracket" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#41d1ff"/>
+      <stop offset="100%" stop-color="#bd34fe"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+
+  <!-- Left bracket < -->
+  <polyline
+    points="26,16 14,32 26,48"
+    stroke="url(#bracket)"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right bracket > -->
+  <polyline
+    points="38,16 50,32 38,48"
+    stroke="url(#bracket)"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
