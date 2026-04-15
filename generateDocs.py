@@ -1,29 +1,7 @@
-#!/usr/bin/env python3
-"""
-generateDocs.py
----------------
-Scans every session folder (DD-MM-YYYY), parses its README.md,
-and auto-generates the full VitePress documentation:
-
-  docs/sessions/<date>.md     — one page per session
-  docs/.vitepress/config.mjs  — sidebar + nav (rebuilt from all sessions)
-  docs/index.md               — home page with feature cards + session table
-
-Run locally:
-  python generateDocs.py
-
-CI/CD (GitHub Actions):
-  Called automatically before `npm run docs:build` on every push to main.
-  The three generated paths above are git-ignored; they are always rebuilt
-  fresh from the source-of-truth README files.
-"""
-
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
-
-# ── Project constants ──────────────────────────────────────────────────────────
 
 ROOT = Path(__file__).parent
 DOCS = ROOT / "docs"
@@ -37,8 +15,6 @@ SITE_DESC = (
     "Design and Analysis of Algorithms — "
     "Lab programs, algorithms, and annotated C code."
 )
-
-# ── Helpers ────────────────────────────────────────────────────────────────────
 
 DATE_RE = re.compile(r"^\d{2}-\d{2}-\d{4}$")
 
@@ -65,15 +41,12 @@ def vitepress_slug(text):
       'Exercise 1 : Binary Search With Iteration'
         → 'exercise-1-binary-search-with-iteration'
     """
-    text = re.sub(r"<[^>]+>", "", text)  # strip HTML tags
+    text = re.sub(r"<[^>]+>", "", text)
     text = text.lower()
-    text = re.sub(r"[^\w\s-]", "", text)  # drop punctuation
-    text = re.sub(r"\s+", "-", text.strip())  # spaces → hyphens
-    text = re.sub(r"-{2,}", "-", text)  # collapse double hyphens
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"\s+", "-", text.strip())
+    text = re.sub(r"-{2,}", "-", text)
     return text
-
-
-# ── README parser ──────────────────────────────────────────────────────────────
 
 
 def parse_readme(path):
@@ -99,13 +72,10 @@ def parse_readme(path):
     """
     text = path.read_text(encoding="utf-8")
 
-    # ── Page title (# …) ──────────────────────────────────────────────────────
     title_m = re.search(r"^#\s+(.+)$", text, re.M)
     title = title_m.group(1).strip() if title_m else path.parent.name
 
-    # ── Split into exercise blocks on "## Exercise N : …" headings ────────────
     parts = re.split(r"^(##\s+Exercise\s+\d+\s*:.*)$", text, flags=re.M)
-    # parts layout: [intro, heading1, body1, heading2, body2, …]
 
     exercises = []
     for i in range(1, len(parts), 2):
@@ -115,7 +85,6 @@ def parse_readme(path):
         # Title = everything after the leading "## "
         ex_title = re.sub(r"^##\s+", "", ex_header).strip()
 
-        # ── Algorithm block ───────────────────────────────────────────────────
         algo_m = re.search(
             r"###\s+Algorithm\s*:?\s*\n(.*?)(?=^###\s|\Z)",
             ex_body,
@@ -123,12 +92,10 @@ def parse_readme(path):
         )
         algorithm = algo_m.group(1).strip() if algo_m else ""
 
-        # ── Code block (```cpp … ``` or ```c … ```) ───────────────────────────
         code_m = re.search(r"```(cpp|c)\s*\n(.*?)```", ex_body, re.S)
         code = code_m.group(2).rstrip() if code_m else ""
         lang = code_m.group(1) if code_m else "c"
 
-        # ── Output block (```bash … ```) ──────────────────────────────────────
         out_m = re.search(r"```bash\s*\n(.*?)```", ex_body, re.S)
         output = out_m.group(1).rstrip() if out_m else ""
 
@@ -146,9 +113,6 @@ def parse_readme(path):
     return {"title": title, "exercises": exercises}
 
 
-# ── Page renderers ─────────────────────────────────────────────────────────────
-
-
 def render_session_page(folder, data):
     """
     Generate a complete VitePress Markdown page for one session.
@@ -160,7 +124,6 @@ def render_session_page(folder, data):
 
     L = []
 
-    # ── Front matter ──────────────────────────────────────────────────────────
     L += [
         "---",
         f'title: "{date}"',
@@ -169,7 +132,6 @@ def render_session_page(folder, data):
         "",
     ]
 
-    # ── Page title + overview ─────────────────────────────────────────────────
     L += [
         f"# {date}",
         "",
@@ -181,7 +143,6 @@ def render_session_page(folder, data):
         "",
     ]
 
-    # ── One section per exercise ──────────────────────────────────────────────
     for ex in exs:
         L += [f"## {ex['title']}", ""]
 
@@ -210,7 +171,6 @@ def render_session_page(folder, data):
 
         L += ["---", ""]
 
-    # ── Compile & Run ─────────────────────────────────────────────────────────
     if cpps:
         L += ["## Compile & Run", "", "```bash"]
         for f in cpps:
@@ -345,8 +305,6 @@ def render_index(sessions):
         for f, d in sessions
     )
 
-    # The doubled {{ / }} are literal braces inside the f-string for the
-    # <style> block — they are NOT Python format placeholders.
     return f"""\
 ---
 layout: home
@@ -401,14 +359,10 @@ features:
 """
 
 
-# ── Entry point ────────────────────────────────────────────────────────────────
-
-
 def main():
     print("\n  C-DAA · generateDocs.py")
     print("  " + "─" * 40)
 
-    # ── Discover session folders ───────────────────────────────────────────────
     folders = sorted(
         [
             d.name
@@ -425,11 +379,9 @@ def main():
         )
         sys.exit(0)
 
-    # ── Ensure output directories exist ───────────────────────────────────────
     SESSIONS_OUT.mkdir(parents=True, exist_ok=True)
     VITEPRESS.mkdir(parents=True, exist_ok=True)
 
-    # ── Parse + generate one page per session ─────────────────────────────────
     sessions = []
     for folder in folders:
         data = parse_readme(ROOT / folder / "README.md")
@@ -439,12 +391,10 @@ def main():
         out.write_text(render_session_page(folder, data), encoding="utf-8")
         print(f"  ✅  {out.relative_to(ROOT)}")
 
-    # ── Generate VitePress config ──────────────────────────────────────────────
     cfg_path = VITEPRESS / "config.mjs"
     cfg_path.write_text(render_config(sessions), encoding="utf-8")
     print(f"  ✅  {cfg_path.relative_to(ROOT)}")
 
-    # ── Generate home page ─────────────────────────────────────────────────────
     idx_path = DOCS / "index.md"
     idx_path.write_text(render_index(sessions), encoding="utf-8")
     print(f"  ✅  {idx_path.relative_to(ROOT)}")
