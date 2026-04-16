@@ -1,6 +1,7 @@
 import html
 import json
 import re
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -8,16 +9,27 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 DOCS = ROOT / "docs"
 EXERCISES_OUT = DOCS / "exercises"
+PDF_SECTIONS_OUT = DOCS / "pdfs"
 VITEPRESS = DOCS / ".vitepress"
+GENERATED_PUBLIC = DOCS / "public" / "generated"
 
 REPO_BASE = "/C-DAA-Programs/"
 GITHUB_REPO = "https://github.com/SpreadSheets600/C-DAA-Programs"
 SITE_URL = f"https://spreadsheets600.github.io{REPO_BASE}"
 SITE_TITLE = "C-DAA Programs"
-SITE_DESC = "Design And Analysis Of Algorithms lab programs, notes, and reference implementations."
+SITE_DESC = "Design And Analysis Of Algorithms lab programs, notes, and reference materials."
 
 DATE_RE = re.compile(r"^\d{2}-\d{2}-\d{4}$")
 SOURCE_EXTENSIONS = (".c", ".cc", ".cpp", ".cxx")
+PDF_EXTENSIONS = (".pdf",)
+SKIP_TOP_LEVEL_DIRS = {
+    ".git",
+    ".github",
+    ".omx",
+    "docs",
+    "node_modules",
+    "__pycache__",
+}
 
 
 def parse_date(folder):
@@ -32,10 +44,15 @@ def pretty_date(folder):
     return parsed.strftime("%B %d, %Y") if parsed else folder
 
 
+def prettify_name(text):
+    return re.sub(r"[-_]+", " ", text).strip().title()
+
+
 def vitepress_slug(text):
     text = re.sub(r"<[^>]+>", "", text)
     text = text.lower()
-    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[^\w\s/-]", "", text)
+    text = text.replace("/", " ")
     text = re.sub(r"\s+", "-", text.strip())
     text = re.sub(r"-{2,}", "-", text)
     return text
@@ -51,8 +68,7 @@ def normalize_code(text):
 
 def compile_command(path):
     compiler = "gcc" if path.suffix == ".c" else "g++"
-    stem = path.stem
-    return f"{compiler} {path.name} -o {stem} && ./{stem}"
+    return f"{compiler} {path.name} -o {path.stem} && ./{path.stem}"
 
 
 def github_blob(path):
@@ -66,6 +82,15 @@ def github_tree(path):
 def site_page(path=""):
     clean_path = path.lstrip("/")
     return f"{SITE_URL}{clean_path}"
+
+
+def public_asset_path(*parts):
+    return "/".join(str(part).strip("/") for part in parts if str(part).strip("/"))
+
+
+def public_asset_url(*parts):
+    path = public_asset_path(*parts)
+    return f"{REPO_BASE}{path}" if path else REPO_BASE
 
 
 def extract_section(body, heading):
@@ -106,6 +131,12 @@ def summary_text(exercises):
     if len(titles) == 2:
         return f"{titles[0]} and {titles[1]}"
     return f"{titles[0]}, {titles[1]}, and {len(titles) - 2} more"
+
+
+def reset_generated_dir(path):
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True, exist_ok=True)
 
 
 def find_source_files(folder):
@@ -199,9 +230,69 @@ def parse_readme(path):
     }
 
 
-def render_readme(sessions):
+def find_pdf_sections():
+    sections = []
+
+    for item in sorted(ROOT.iterdir(), key=lambda path: path.name.lower()):
+        if not item.is_dir():
+            continue
+        if item.name.startswith(".") or item.name in SKIP_TOP_LEVEL_DIRS:
+            continue
+        if DATE_RE.match(item.name):
+            continue
+
+        pdf_files = sorted(
+            [
+                path
+                for path in item.rglob("*")
+                if path.is_file() and path.suffix.lower() in PDF_EXTENSIONS
+            ],
+            key=lambda path: path.relative_to(item).as_posix().lower(),
+        )
+
+        if not pdf_files:
+            continue
+
+        section_slug = vitepress_slug(item.name)
+        files = []
+
+        for pdf_file in pdf_files:
+            relative_path = pdf_file.relative_to(item)
+            public_path = (
+                Path("generated") / "pdfs" / item.name / relative_path
+            ).as_posix()
+            files.append(
+                {
+                    "name": relative_path.name,
+                    "display_name": relative_path.as_posix(),
+                    "slug": vitepress_slug(relative_path.as_posix()),
+                    "source_path": pdf_file,
+                    "source_link": github_blob(pdf_file.relative_to(ROOT)),
+                    "public_path": public_path,
+                    "public_url": public_asset_url(public_path),
+                }
+            )
+
+        sections.append(
+            (
+                item.name,
+                {
+                    "title": prettify_name(item.name),
+                    "slug": section_slug,
+                    "files": files,
+                    "source_folder_link": github_tree(item.relative_to(ROOT)),
+                    "doc_link": f"/pdfs/{section_slug}",
+                },
+            )
+        )
+
+    return sections
+
+
+def render_readme(sessions, pdf_sections):
     total_exercises = sum(len(data["exercises"]) for _, data in sessions)
     total_files = sum(len(data["source_files"]) for _, data in sessions)
+    total_pdfs = sum(len(data["files"]) for _, data in pdf_sections)
 
     session_rows = "\n".join(
         (
@@ -211,20 +302,57 @@ def render_readme(sessions):
         for folder, data in sessions
     )
 
-    return (
-        f"# {SITE_TITLE}\n\n"
-        "> This README is generated by `generateDocs.py`. Add or update dated lab folders, "
-        "then run `npm run docs:sync`.\n\n"
-        "## Snapshot\n\n"
-        f"- Sessions Archived : **{len(sessions)}**\n"
-        f"- Programs Documented : **{total_exercises}**\n"
-        f"- Source Files Tracked : **{total_files}**\n"
-        f"- Docs Site : [Programs Site]({SITE_URL})\n\n"
-        "## Session Index\n\n"
-        "| Date | Topic | Programs | Source | Docs |\n"
-        "|------|-------|----------|--------|------|\n"
-        f"{session_rows}\n\n"
+    pdf_rows = "\n".join(
+        (
+            f"| {data['title']} | {len(data['files'])} | "
+            f"[Folder](./{folder}) | [Docs Page]({site_page(f'pdfs/{data['slug']}')}) |"
+        )
+        for folder, data in pdf_sections
     )
+
+    lines = [
+        f"# {SITE_TITLE}",
+        "",
+        "> This README is generated by `generateDocs.py`. Update your source folders and let the workflow regenerate the repo docs.",
+        "",
+        "## Snapshot",
+        "",
+        f"- Sessions Archived : **{len(sessions)}**",
+        f"- Programs Documented : **{total_exercises}**",
+        f"- Source Files Tracked : **{total_files}**",
+        f"- PDF Sections Tracked : **{len(pdf_sections)}**",
+        f"- PDFs Tracked : **{total_pdfs}**",
+        f"- Docs Site : [Programs Site]({SITE_URL})",
+        "",
+        "## Session Index",
+        "",
+        "| Date | Topic | Programs | Source | Docs |",
+        "|------|-------|----------|--------|------|",
+        session_rows or "| No sessions yet | - | - | - | - |",
+        "",
+    ]
+
+    if pdf_sections:
+        lines += [
+            "## PDF Library",
+            "",
+            "| Section | PDFs | Source | Docs |",
+            "|---------|------|--------|------|",
+            pdf_rows,
+            "",
+        ]
+
+    lines += [
+        "## Workflow",
+        "",
+        "1. Update a dated lab folder for code sessions.",
+        "2. Put standalone PDFs inside top-level section folders like `notes/` or `questions/`.",
+        "3. Push to `main`.",
+        "4. GitHub Actions regenerates the README, rebuilds the docs, and deploys GitHub Pages.",
+        "",
+    ]
+
+    return "\n".join(lines)
 
 
 def render_exercise_page(folder, data):
@@ -251,17 +379,10 @@ def render_exercise_page(folder, data):
         "",
         f"# {data['title']}",
         "",
-        '<div class="session-hero">',
-        '  <div class="session-hero__copy">',
-        '    <p class="session-hero__eyebrow">Lab Reference</p>',
-        f"    <p>{html.escape(data['topic'])} collected as revision-friendly notes, runnable source code, and sample output.</p>",
-        "  </div>",
-        '  <div class="session-hero__stats">',
-        f"    <div><strong>{html.escape(session_label)}</strong><span>session date</span></div>",
-        f"    <div><strong>{len(exercises)}</strong><span>programs</span></div>",
-        f"    <div><strong>{len(data['source_files'])}</strong><span>source files</span></div>",
-        "  </div>",
-        "</div>",
+        f"> Topic: **{data['topic']}**  ",
+        f"> Session Date: **{session_label}**  ",
+        f"> Programs: **{len(exercises)}**  ",
+        f"> Source Files: **{len(data['source_files'])}**",
         "",
         "::: tip Study flow",
         "Read the algorithm first, write the steps in your notebook, then compare the implementation and output with the original program file.",
@@ -285,11 +406,9 @@ def render_exercise_page(folder, data):
         lines += [
             f"## {ex['title']}",
             "",
-            '<div class="exercise-meta">',
-            f"  <span>Program {index} of {len(exercises)}</span>",
-            f"  <span>{ex.get('source_file', 'Source file not matched')}</span>",
-            f"  <span>{ex['lang'].upper()}</span>",
-            "</div>",
+            f"- Program: **{index} of {len(exercises)}**",
+            f"- File: **{ex.get('source_file', 'Source file not matched')}**",
+            f"- Language: **{ex['lang'].upper()}**",
             "",
         ]
 
@@ -373,12 +492,74 @@ def render_exercise_page(folder, data):
     return "\n".join(lines)
 
 
-def sidebar_item(folder, data, collapsed):
+def render_pdf_section_page(folder, data):
+    generator_rel = Path("generateDocs.py")
+    file_rows = "\n".join(
+        (
+            f"| [{pdf['display_name']}](#{pdf['slug']}) | "
+            f"[Preview]({pdf['public_url']}) | [GitHub]({pdf['source_link']}) |"
+        )
+        for pdf in data["files"]
+    )
+
+    lines = [
+        "---",
+        f"title: {js_string(data['title'])}",
+        "titleTemplate: false",
+        "---",
+        "",
+        f"# {data['title']}",
+        "",
+        f"> Section: **{data['title']}**  ",
+        f"> PDFs: **{len(data['files'])}**",
+        "",
+        "::: tip PDF preview",
+        "These PDFs are sourced from a top-level folder in the repository and embedded here for quick reading.",
+        ":::",
+        "",
+        "## Section Resources",
+        "",
+        f"- [Open source folder]({data['source_folder_link']})",
+        f"- [Open docs generator]({github_blob(generator_rel)})",
+        "",
+        "## Files",
+        "",
+        "| PDF | Preview | Source |",
+        "|-----|---------|--------|",
+        file_rows,
+        "",
+    ]
+
+    for pdf in data["files"]:
+        lines += [
+            f"## {pdf['display_name']}",
+            "",
+            f"- [Preview in browser]({pdf['public_url']})",
+            f"- [Open original file on GitHub]({pdf['source_link']})",
+            "",
+            f'<iframe src="{pdf["public_url"]}" title="{html.escape(pdf["display_name"])}" width="100%" height="720"></iframe>',
+            "",
+            "---",
+            "",
+        ]
+
+    lines += [
+        "## Maintainer Note",
+        "",
+        f"This page is generated from the repository folder [{folder}]({data['source_folder_link']}) by "
+        f"[{generator_rel.as_posix()}]({github_blob(generator_rel)}).",
+        "",
+    ]
+
+    return "\n".join(lines)
+
+
+def sidebar_session_item(folder, data, collapsed):
     child_items = "\n".join(
         (
             "            { "
             f"text: {js_string(ex['title'])}, "
-            f"link: {js_string(f'/exercises/{folder}#{ex["slug"]}')} "
+            f"link: {js_string(f'/exercises/{folder}#{ex['slug']}')} "
             "},"
         )
         for ex in data["exercises"]
@@ -396,12 +577,66 @@ def sidebar_item(folder, data, collapsed):
     )
 
 
-def render_config(sessions):
-    first_link = f"/exercises/{sessions[0][0]}" if sessions else "/"
-    sidebar_str = ",\n".join(
-        sidebar_item(folder, data, collapsed=index > 0)
+def sidebar_pdf_item(section):
+    folder, data = section
+    child_items = "\n".join(
+        (
+            "            { "
+            f"text: {js_string(pdf['display_name'])}, "
+            f"link: {js_string(f'/pdfs/{data['slug']}#{pdf['slug']}')} "
+            "},"
+        )
+        for pdf in data["files"]
+    )
+
+    return (
+        "        {\n"
+        f"          text: {js_string(data['title'])},\n"
+        f"          link: {js_string(f'/pdfs/{data['slug']}')},\n"
+        "          collapsed: true,\n"
+        "          items: [\n"
+        f"{child_items}\n"
+        "          ],\n"
+        "        }"
+    )
+
+
+def render_config(sessions, pdf_sections):
+    first_session_link = f"/exercises/{sessions[0][0]}" if sessions else "/"
+    first_pdf_link = f"/pdfs/{pdf_sections[0][1]['slug']}" if pdf_sections else "/"
+
+    session_sidebar = ",\n".join(
+        sidebar_session_item(folder, data, collapsed=index > 0)
         for index, (folder, data) in enumerate(sessions)
     )
+
+    sidebar_groups = [
+        "      {\n"
+        '        text: "Lab Sessions",\n'
+        "        items: [\n"
+        f"{session_sidebar}\n"
+        "        ],\n"
+        "      }"
+    ]
+
+    if pdf_sections:
+        pdf_sidebar = ",\n".join(sidebar_pdf_item(section) for section in pdf_sections)
+        sidebar_groups.append(
+            "      {\n"
+            '        text: "PDF Library",\n'
+            "        items: [\n"
+            f"{pdf_sidebar}\n"
+            "        ],\n"
+            "      }"
+        )
+
+    nav_items = [
+        '      { text: "Home", link: "/" },',
+        f'      {{ text: "Latest Session", link: "{first_session_link}" }},',
+    ]
+    if pdf_sections:
+        nav_items.append(f'      {{ text: "PDF Library", link: "{first_pdf_link}" }},')
+    nav_items.append(f'      {{ text: "GitHub", link: "{GITHUB_REPO}" }},')
 
     return (
         'import { defineConfig } from "vitepress";\n'
@@ -419,9 +654,6 @@ def render_config(sessions):
         "  lastUpdated: true,\n"
         "\n"
         "  head: [\n"
-        '    ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],\n'
-        '    ["link", { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }],\n'
-        '    ["link", { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" }],\n'
         f'    ["link", {{ rel: "icon", href: "{REPO_BASE}favicon.svg" }}],\n'
         '    ["meta", { name: "theme-color", content: "#0f766e" }],\n'
         "  ],\n"
@@ -442,17 +674,10 @@ def render_config(sessions):
         "  themeConfig: {\n"
         '    logo: { src: "/favicon.svg", alt: "C-DAA Programs" },\n'
         "    nav: [\n"
-        '      { text: "Home", link: "/" },\n'
-        f'      {{ text: "Latest Session", link: "{first_link}" }},\n'
-        f'      {{ text: "GitHub", link: "{GITHUB_REPO}" }},\n'
+        f"{chr(10).join(nav_items)}\n"
         "    ],\n"
         "    sidebar: [\n"
-        "      {\n"
-        '        text: "Lab Sessions",\n'
-        "        items: [\n"
-        f"{sidebar_str}\n"
-        "        ],\n"
-        "      },\n"
+        f"{',\n'.join(sidebar_groups)}\n"
         "    ],\n"
         f'    socialLinks: [{{ icon: "github", link: "{GITHUB_REPO}" }}],\n'
         '    search: { provider: "local" },\n'
@@ -462,112 +687,127 @@ def render_config(sessions):
         "    },\n"
         '    outline: { level: [2, 3], label: "On this page" },\n'
         "    docFooter: {\n"
-        '      prev: "Previous session",\n'
-        '      next: "Next session",\n'
+        '      prev: "Previous",\n'
+        '      next: "Next",\n'
         "    },\n"
         "  },\n"
         "});\n"
     )
 
 
-def render_index(sessions):
-    first_link = f"/exercises/{sessions[0][0]}" if sessions else "/"
-    latest_folder, latest_data = sessions[0]
+def render_index(sessions, pdf_sections):
+    first_session_link = f"/exercises/{sessions[0][0]}" if sessions else "/"
+    latest_folder = sessions[0][0] if sessions else None
+    latest_data = sessions[0][1] if sessions else None
 
     total_sessions = len(sessions)
     total_exercises = sum(len(data["exercises"]) for _, data in sessions)
     total_files = sum(len(data["source_files"]) for _, data in sessions)
-
-    timeline_cards = "\n".join(
-        [
-            (
-                '<article class="session-card">'
-                f'<p class="session-card__date">{html.escape(pretty_date(folder))}</p>'
-                f'<h3><a href="./exercises/{folder}">{html.escape(data["topic"])}</a></h3>'
-                f"<p>{html.escape(data['summary'])}</p>"
-                f'<p class="session-card__meta">{len(data["exercises"])} programs · {len(data["source_files"])} files</p>'
-                "</article>"
-            )
-            for folder, data in sessions
-        ]
-    )
+    total_pdf_sections = len(pdf_sections)
+    total_pdfs = sum(len(data["files"]) for _, data in pdf_sections)
 
     session_rows = "\n".join(
         (
             f"| [{pretty_date(folder)}](./exercises/{folder}) | {data['topic']} | "
-            f"{len(data['exercises'])} | "
-            f"[Folder]({data['source_folder_link']}) |"
+            f"{len(data['exercises'])} | [Folder]({data['source_folder_link']}) |"
         )
         for folder, data in sessions
     )
 
-    latest_programs = "\n".join(
-        f'<li><a href="./exercises/{latest_folder}#{ex["slug"]}">{html.escape(ex["title"])}</a></li>'
-        for ex in latest_data["exercises"]
+    pdf_rows = "\n".join(
+        (
+            f"| [{data['title']}](./pdfs/{data['slug']}) | {len(data['files'])} | "
+            f"[Folder]({data['source_folder_link']}) |"
+        )
+        for _, data in pdf_sections
     )
 
-    return (
-        "---\n"
-        "layout: home\n"
-        "\n"
-        "hero:\n"
-        f"  name: {js_string(SITE_TITLE)}\n"
-        '  text: "DAA lab work, organized for fast revision."\n'
-        "  tagline: Keep each lab session in one place with algorithm steps, source code, and sample output that stay easy to revisit later.\n"
-        "  actions:\n"
-        "    - theme: brand\n"
-        "      text: Open Latest Session\n"
-        f"      link: {first_link}\n"
-        "    - theme: alt\n"
-        "      text: View on GitHub\n"
-        f"      link: {GITHUB_REPO}\n"
-        "features:\n"
-        "  - title: Session-wise archive\n"
-        "    details: Each lab date gets its own generated page with linked programs and clean navigation.\n"
-        "  - title: Notebook-friendly structure\n"
-        "    details: Algorithms, code, and outputs are kept in the same order you need when revising or writing in your copy.\n"
-        "  - title: Single-source workflow\n"
-        "    details: Update the dated session folder once, then regenerate the README and docs site together.\n"
-        "---\n"
-        "\n"
-        '<div class="landing-metrics">\n'
-        f"  <div><strong>{total_sessions}</strong><span>sessions</span></div>\n"
-        f"  <div><strong>{total_exercises}</strong><span>programs</span></div>\n"
-        f"  <div><strong>{total_files}</strong><span>source files</span></div>\n"
-        f"  <div><strong>{html.escape(pretty_date(latest_folder))}</strong><span>latest lab</span></div>\n"
-        "</div>\n"
-        "\n"
-        "## Latest Session\n"
-        "\n"
-        '<div class="latest-session">\n'
-        '  <div class="latest-session__copy">\n'
-        f'    <p class="latest-session__eyebrow">{html.escape(pretty_date(latest_folder))}</p>\n'
-        f'    <h3><a href="./exercises/{latest_folder}">{html.escape(latest_data["topic"])}</a></h3>\n'
-        f"    <p>{html.escape(latest_data['summary'])}</p>\n"
-        "  </div>\n"
-        '  <ul class="latest-session__list">\n'
-        f"{latest_programs}\n"
-        "  </ul>\n"
-        "</div>\n"
-        "\n"
-        "## Study Workflow\n"
-        "\n"
-        '<div class="workflow-grid">\n'
-        "  <article><strong>1.</strong><p>Write the lab solution in the dated folder with its source file and session README.</p></article>\n"
-        "  <article><strong>2.</strong><p>Run <code>npm run docs:sync</code> to regenerate the GitHub README and VitePress docs.</p></article>\n"
-        "  <article><strong>3.</strong><p>Use the generated site later to revise algorithms, compare outputs, and copy notes into your notebook faster.</p></article>\n"
-        "</div>\n"
-        "\n"
-        "## Session Timeline\n"
-        "\n"
-        f'<div class="timeline-grid">\n{timeline_cards}\n</div>\n'
-        "\n"
-        "## All Sessions\n"
-        "\n"
-        "| Date | Topic | Programs | Source |\n"
-        "|------|-------|----------|--------|\n"
-        f"{session_rows}\n"
-    )
+    lines = [
+        "---",
+        "layout: home",
+        "",
+        "hero:",
+        f"  name: {js_string(SITE_TITLE)}",
+        '  text: "DAA lab work, organized for fast revision."',
+        "  tagline: Keep each lab session, note set, and question bank easy to revisit later.",
+        "  actions:",
+        "    - theme: brand",
+        "      text: Open Latest Session",
+        f"      link: {first_session_link}",
+        "    - theme: alt",
+        "      text: View on GitHub",
+        f"      link: {GITHUB_REPO}",
+        "features:",
+        "  - title: Session-wise archive",
+        "    details: Each lab date gets its own generated page with linked programs and clean navigation.",
+        "  - title: Separate PDF library",
+        "    details: Keep notes, question banks, and other PDFs in their own top-level folders like notes/ or questions/.",
+        "  - title: Workflow automation",
+        "    details: Push once and let GitHub Actions regenerate the README, rebuild the site, and deploy Pages.",
+        "---",
+        "",
+        "## Snapshot",
+        "",
+        f"- Sessions: **{total_sessions}**",
+        f"- Programs: **{total_exercises}**",
+        f"- Source files: **{total_files}**",
+        f"- PDF sections: **{total_pdf_sections}**",
+        f"- PDFs: **{total_pdfs}**",
+        "",
+    ]
+
+    if latest_folder and latest_data:
+        latest_programs = "\n".join(
+            f"- [{ex['title']}](./exercises/{latest_folder}#{ex['slug']})"
+            for ex in latest_data["exercises"]
+        )
+        lines += [
+            "## Latest Session",
+            "",
+            f"- Date: **{pretty_date(latest_folder)}**",
+            f"- Topic: **[{latest_data['topic']}](./exercises/{latest_folder})**",
+            f"- Summary: {latest_data['summary']}",
+            "",
+            "### Programs In Latest Session",
+            "",
+            latest_programs,
+            "",
+        ]
+
+    lines += [
+        "## PDF Library",
+        "",
+        "| Section | PDFs | Source |",
+        "|---------|------|--------|",
+        pdf_rows or "| No PDF sections yet | 0 | - |",
+        "",
+        "## Study Workflow",
+        "",
+        "1. Update a dated lab folder for code sessions.",
+        "2. Put standalone PDFs inside top-level folders like `notes/` or `questions/`.",
+        "3. Push to `main`.",
+        "4. GitHub Actions regenerates the README, refreshes the docs site, and deploys GitHub Pages.",
+        "",
+        "## All Sessions",
+        "",
+        "| Date | Topic | Programs | Source |",
+        "|------|-------|----------|--------|",
+        session_rows or "| No sessions yet | - | - | - |",
+        "",
+    ]
+
+    return "\n".join(lines)
+
+
+def sync_public_assets(pdf_sections):
+    reset_generated_dir(GENERATED_PUBLIC)
+
+    for folder, data in pdf_sections:
+        for pdf in data["files"]:
+            destination = DOCS / "public" / Path(pdf["public_path"])
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(pdf["source_path"], destination)
+            print(f"generated  {destination.relative_to(ROOT)}")
 
 
 def main():
@@ -582,11 +822,8 @@ def main():
         key=lambda name: parse_date(name) or datetime.min,
     )
 
-    if not folders:
-        print("No exercise folders found.")
-        sys.exit(0)
-
-    EXERCISES_OUT.mkdir(parents=True, exist_ok=True)
+    reset_generated_dir(EXERCISES_OUT)
+    reset_generated_dir(PDF_SECTIONS_OUT)
     VITEPRESS.mkdir(parents=True, exist_ok=True)
 
     sessions_chronological = []
@@ -599,20 +836,36 @@ def main():
         print(f"generated  {out_path.relative_to(ROOT)}")
 
     sessions_display = list(reversed(sessions_chronological))
+    pdf_sections = find_pdf_sections()
+
+    for folder, data in pdf_sections:
+        out_path = PDF_SECTIONS_OUT / f"{data['slug']}.md"
+        out_path.write_text(render_pdf_section_page(folder, data), encoding="utf-8")
+        print(f"generated  {out_path.relative_to(ROOT)}")
+
+    sync_public_assets(pdf_sections)
 
     config_path = VITEPRESS / "config.mjs"
-    config_path.write_text(render_config(sessions_display), encoding="utf-8")
+    config_path.write_text(
+        render_config(sessions_display, pdf_sections), encoding="utf-8"
+    )
     print(f"generated  {config_path.relative_to(ROOT)}")
 
     index_path = DOCS / "index.md"
-    index_path.write_text(render_index(sessions_display), encoding="utf-8")
+    index_path.write_text(
+        render_index(sessions_display, pdf_sections), encoding="utf-8"
+    )
     print(f"generated  {index_path.relative_to(ROOT)}")
 
     readme_path = ROOT / "README.md"
-    readme_path.write_text(render_readme(sessions_display), encoding="utf-8")
+    readme_path.write_text(
+        render_readme(sessions_display, pdf_sections), encoding="utf-8"
+    )
     print(f"generated  {readme_path.relative_to(ROOT)}")
 
-    print(f"done - {len(sessions_display)} folder(s) processed.")
+    print(
+        f"done - {len(sessions_display)} session(s) and {len(pdf_sections)} pdf section(s) processed."
+    )
 
 
 if __name__ == "__main__":
