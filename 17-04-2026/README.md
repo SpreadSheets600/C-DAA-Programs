@@ -1,6 +1,6 @@
 # Programming Exercises - April 17, 2026
 
-## Exercise 1 : Fining Minimum And Maximum Of A Array Using Reccursion
+## Exercise 1 : Finding Minimum And Maximum Of A Array Using Reccursion
 
 ### Algorithm :
 
