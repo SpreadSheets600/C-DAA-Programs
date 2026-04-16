@@ -233,5 +233,5 @@ Unsorted Array: 9 3 7 1 5
 Sorted Array: 1 3 5 7 9
 
 Enter The Element To Search: 7
-Element Found At Index 0
+Element Found At Index 3
 ```
