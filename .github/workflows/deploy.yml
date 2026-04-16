@@ -36,17 +36,17 @@ jobs:
       - name: Build generated docs
         run: npm run docs:build
 
-      - name: Commit generated README and docs pages
+      - name: Commit generated README
         run: |
-          if git diff --quiet -- README.md docs/exercises docs/pdfs; then
-            echo "No tracked generated docs changes to commit."
+          if git diff --quiet -- README.md; then
+            echo "No generated README changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md docs/exercises docs/pdfs
-          git commit -m "chore: sync generated docs [skip ci]"
+          git add README.md
+          git commit -m "chore: sync generated README [skip ci]"
           git push
 
       - name: Deploy

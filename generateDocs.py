@@ -5,6 +5,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path(__file__).parent
 DOCS = ROOT / "docs"
@@ -103,11 +104,11 @@ def compile_command(path):
 
 
 def github_blob(path):
-    return f"{GITHUB_REPO}/blob/main/{path.as_posix()}"
+    return f"{GITHUB_REPO}/blob/main/{quote(path.as_posix(), safe='/')}"
 
 
 def github_tree(path):
-    return f"{GITHUB_REPO}/tree/main/{path.as_posix()}"
+    return f"{GITHUB_REPO}/tree/main/{quote(path.as_posix(), safe='/')}"
 
 
 def site_page(path=""):
@@ -121,7 +122,7 @@ def public_asset_path(*parts):
 
 def public_asset_url(*parts):
     path = public_asset_path(*parts)
-    return f"{REPO_BASE}{path}" if path else REPO_BASE
+    return f"{REPO_BASE}{quote(path, safe='/')}" if path else REPO_BASE
 
 
 def extract_section(body, heading):
@@ -542,9 +543,6 @@ def render_pdf_section_page(folder, data):
         lines += [
             f"## {pdf['display_name']}",
             "",
-            f"- [Preview in browser]({pdf['public_url']})",
-            f"- [Open original file on GitHub]({pdf['source_link']})",
-            "",
             f'<iframe src="{pdf["public_url"]}" title="{html.escape(pdf["display_name"])}" width="100%" height="720"></iframe>',
             "",
             "---",
@@ -766,7 +764,6 @@ def render_index(sessions, pdf_sections):
             "",
         ]
 
-    lines += render_pdf_section_tables(pdf_sections, link_prefix=".")
     lines += [
         "## All Sessions",
         "",
@@ -775,6 +772,23 @@ def render_index(sessions, pdf_sections):
         session_rows or "| No sessions yet | - | - | - |",
         "",
     ]
+
+    for _, data in pdf_sections:
+        rows = "\n".join(
+            (
+                f"| [{pdf['display_name']}](./pdfs/{data['slug']}#{pdf['slug']}) | "
+                f"[Preview]({pdf['public_url']}) | [GitHub]({pdf['source_link']}) |"
+            )
+            for pdf in data["files"]
+        )
+        lines += [
+            f"## {data['title']}",
+            "",
+            "| PDF | Preview | Source |",
+            "|-----|---------|--------|",
+            rows,
+            "",
+        ]
 
     return "\n".join(lines)
 

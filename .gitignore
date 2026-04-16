@@ -9,6 +9,8 @@ docs/.vitepress/cache
 docs/.vitepress/config.mjs
 docs/sessions/
 docs/index.md
+docs/exercises/
+docs/pdfs/
 docs/public/generated/
 
 # Logs

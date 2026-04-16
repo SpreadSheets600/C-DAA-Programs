@@ -29,5 +29,5 @@
 
 | PDF | Preview | Source |
 |-----|---------|--------|
-| [Divide And Conquer PYQ.pdf](./pdfs/questions#divide-and-conquer-pyqpdf) | [Preview](/C-DAA-Programs/generated/pdfs/Questions/Divide And Conquer PYQ.pdf) | [GitHub](https://github.com/SpreadSheets600/C-DAA-Programs/blob/main/Questions/Divide And Conquer PYQ.pdf) |
-| [Knapsack Problems PYQ.pdf](./pdfs/questions#knapsack-problems-pyqpdf) | [Preview](/C-DAA-Programs/generated/pdfs/Questions/Knapsack Problems PYQ.pdf) | [GitHub](https://github.com/SpreadSheets600/C-DAA-Programs/blob/main/Questions/Knapsack Problems PYQ.pdf) |
+| [Divide And Conquer PYQ.pdf](./pdfs/questions#divide-and-conquer-pyqpdf) | [Preview](/C-DAA-Programs/generated/pdfs/Questions/Divide%20And%20Conquer%20PYQ.pdf) | [GitHub](https://github.com/SpreadSheets600/C-DAA-Programs/blob/main/Questions/Divide%20And%20Conquer%20PYQ.pdf) |
+| [Knapsack Problems PYQ.pdf](./pdfs/questions#knapsack-problems-pyqpdf) | [Preview](/C-DAA-Programs/generated/pdfs/Questions/Knapsack%20Problems%20PYQ.pdf) | [GitHub](https://github.com/SpreadSheets600/C-DAA-Programs/blob/main/Questions/Knapsack%20Problems%20PYQ.pdf) |
