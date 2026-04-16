@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Design and Analysis of Algorithms - Lab Programs",
   "scripts": {
+    "docs:sync": "python3 generateDocs.py",
+    "predocs:dev": "npm run docs:sync",
     "docs:dev": "vitepress dev docs",
+    "predocs:build": "npm run docs:sync",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
