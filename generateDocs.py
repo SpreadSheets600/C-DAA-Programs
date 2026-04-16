@@ -18,6 +18,37 @@ GITHUB_REPO = "https://github.com/SpreadSheets600/C-DAA-Programs"
 SITE_URL = f"https://spreadsheets600.github.io{REPO_BASE}"
 SITE_TITLE = "C-DAA Programs"
 SITE_DESC = "Design And Analysis Of Algorithms lab programs, notes, and reference materials."
+INLINE_DOCS_CSS = """
+.VPFeatures {
+  margin-top: 1.5rem;
+}
+
+.VPFeature {
+  text-align: center;
+}
+
+.VPFeature .title {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1;
+}
+
+.VPFeature .details {
+  font-size: 0.95rem;
+}
+
+.vp-doc iframe {
+  display: block;
+  width: 100%;
+  min-height: 720px;
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .vp-doc iframe {
+    min-height: 520px;
+  }
+}
+""".strip()
 
 DATE_RE = re.compile(r"^\d{2}-\d{2}-\d{4}$")
 SOURCE_EXTENSIONS = (".c", ".cc", ".cpp", ".cxx")
@@ -607,6 +638,7 @@ def render_config(sessions, pdf_sections):
         "  head: [\n"
         f'    ["link", {{ rel: "icon", href: "{REPO_BASE}favicon.svg" }}],\n'
         '    ["meta", { name: "theme-color", content: "#0f766e" }],\n'
+        f"    ['style', {{}}, {js_string(INLINE_DOCS_CSS)}],\n"
         "  ],\n"
         "\n"
         "  markdown: {\n"
