@@ -396,7 +396,6 @@ def render_readme(sessions, pdf_sections):
 
 
 def render_exercise_page(folder, data):
-    session_label = pretty_date(folder)
     exercises = data["exercises"]
     jump_rows = "\n".join(
         (
@@ -415,15 +414,6 @@ def render_exercise_page(folder, data):
         "---",
         "",
         f"# {data['title']}",
-        "",
-        f"> Topic: **{data['topic']}**  ",
-        f"> Session Date: **{session_label}**  ",
-        f"> Programs: **{len(exercises)}**  ",
-        f"> Source Files: **{len(data['source_files'])}**",
-        "",
-        "::: tip Study flow",
-        "Read the algorithm first, write the steps in your notebook, then compare the implementation and output with the original program file.",
-        ":::",
         "",
         "## Quick Jump",
         "",
