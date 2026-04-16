@@ -4,9 +4,9 @@
 
 ## Snapshot
 
-- Sessions Archived : **1**
+- Sessions Archived : **2**
 - Programs Documented : **3**
-- Source Files Tracked : **3**
+- Source Files Tracked : **4**
 - PDF Sections Tracked : **2**
 - PDFs Tracked : **3**
 - Docs Site : [Programs Site](https://spreadsheets600.github.io/C-DAA-Programs/)
@@ -15,6 +15,7 @@
 
 | Date | Topic | Programs | Source | Docs |
 |------|-------|----------|--------|------|
+| April 17, 2026 | Algorithms Practice | 0 | [Session README](./17-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/17-04-2026) |
 | April 10, 2026 | Binary Search | 3 | [Session README](./10-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/10-04-2026) |
 
 ## PDF Library
