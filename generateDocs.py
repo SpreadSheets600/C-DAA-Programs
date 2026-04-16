@@ -94,6 +94,10 @@ def js_string(value):
     return json.dumps(value, ensure_ascii=False)
 
 
+def html_anchor(text, href):
+    return f'<a href="{html.escape(href, quote=True)}">{html.escape(text)}</a>'
+
+
 def normalize_code(text):
     return "\n".join(line.rstrip() for line in text.strip().splitlines())
 
@@ -120,9 +124,14 @@ def public_asset_path(*parts):
     return "/".join(str(part).strip("/") for part in parts if str(part).strip("/"))
 
 
-def public_asset_url(*parts):
+def docs_asset_url(*parts):
     path = public_asset_path(*parts)
     return f"{REPO_BASE}{quote(path, safe='/')}" if path else REPO_BASE
+
+
+def site_asset_url(*parts):
+    path = public_asset_path(*parts)
+    return f"{SITE_URL}{quote(path, safe='/')}" if path else SITE_URL
 
 
 def extract_section(body, heading):
@@ -182,7 +191,7 @@ def render_pdf_section_tables(pdf_sections, link_prefix="."):
         rows = "\n".join(
             (
                 f"| [{pdf['display_name']}]({link_prefix}/pdfs/{data['slug']}#{pdf['slug']}) | "
-                f"[Preview]({pdf['public_url']}) | [GitHub]({pdf['source_link']}) |"
+                f"[Preview]({pdf['site_url']}) | [GitHub]({pdf['source_link']}) |"
             )
             for pdf in data["files"]
         )
@@ -335,7 +344,8 @@ def find_pdf_sections():
                     "source_path": pdf_file,
                     "source_link": github_blob(pdf_file.relative_to(ROOT)),
                     "public_path": public_path,
-                    "public_url": public_asset_url(public_path),
+                    "docs_url": docs_asset_url(public_path),
+                    "site_url": site_asset_url(public_path),
                 }
             )
 
@@ -505,7 +515,7 @@ def render_pdf_section_page(folder, data):
     file_rows = "\n".join(
         (
             f"| [{pdf['display_name']}](#{pdf['slug']}) | "
-            f"[Preview]({pdf['public_url']}) | [GitHub]({pdf['source_link']}) |"
+            f"{html_anchor('Preview', pdf['docs_url'])} | [GitHub]({pdf['source_link']}) |"
         )
         for pdf in data["files"]
     )
@@ -533,7 +543,7 @@ def render_pdf_section_page(folder, data):
         lines += [
             f"## {pdf['display_name']}",
             "",
-            f'<iframe src="{pdf["public_url"]}" title="{html.escape(pdf["display_name"])}" width="100%" height="720"></iframe>',
+            f'<iframe src="{pdf["docs_url"]}" title="{html.escape(pdf["display_name"])}" width="100%" height="720"></iframe>',
             "",
             "---",
             "",
@@ -767,7 +777,7 @@ def render_index(sessions, pdf_sections):
         rows = "\n".join(
             (
                 f"| [{pdf['display_name']}](./pdfs/{data['slug']}#{pdf['slug']}) | "
-                f"[Preview]({pdf['public_url']}) | [GitHub]({pdf['source_link']}) |"
+                f"{html_anchor('Preview', pdf['docs_url'])} | [GitHub]({pdf['source_link']}) |"
             )
             for pdf in data["files"]
         )
