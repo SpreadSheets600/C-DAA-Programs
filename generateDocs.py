@@ -342,25 +342,12 @@ def render_readme(sessions, pdf_sections):
             "",
         ]
 
-    lines += [
-        "## Workflow",
-        "",
-        "1. Update a dated lab folder for code sessions.",
-        "2. Put standalone PDFs inside top-level section folders like `notes/` or `questions/`.",
-        "3. Push to `main`.",
-        "4. GitHub Actions regenerates the README, rebuilds the docs, and deploys GitHub Pages.",
-        "",
-    ]
-
     return "\n".join(lines)
 
 
 def render_exercise_page(folder, data):
     session_label = pretty_date(folder)
     exercises = data["exercises"]
-    source_readme_rel = Path(folder) / "README.md"
-    generator_rel = Path("generateDocs.py")
-
     jump_rows = "\n".join(
         (
             "| "
@@ -388,12 +375,6 @@ def render_exercise_page(folder, data):
         "Read the algorithm first, write the steps in your notebook, then compare the implementation and output with the original program file.",
         ":::",
         "",
-        "## Session Resources",
-        "",
-        f"- [Open source session folder]({data['source_folder_link']})",
-        f"- [Open original session README]({data['source_readme_link']})",
-        f"- [Open docs generator]({github_blob(generator_rel)})",
-        "",
         "## Quick Jump",
         "",
         "| Program | File | Link |",
@@ -405,10 +386,6 @@ def render_exercise_page(folder, data):
     for index, ex in enumerate(exercises, start=1):
         lines += [
             f"## {ex['title']}",
-            "",
-            f"- Program: **{index} of {len(exercises)}**",
-            f"- File: **{ex.get('source_file', 'Source file not matched')}**",
-            f"- Language: **{ex['lang'].upper()}**",
             "",
         ]
 
@@ -481,19 +458,10 @@ def render_exercise_page(folder, data):
             "",
         ]
 
-    lines += [
-        "## Maintainer Note",
-        "",
-        f"This page is generated from [{source_readme_rel.as_posix()}]({data['source_readme_link']}) by "
-        f"[{generator_rel.as_posix()}]({github_blob(generator_rel)}).",
-        "",
-    ]
-
     return "\n".join(lines)
 
 
 def render_pdf_section_page(folder, data):
-    generator_rel = Path("generateDocs.py")
     file_rows = "\n".join(
         (
             f"| [{pdf['display_name']}](#{pdf['slug']}) | "
@@ -512,15 +480,6 @@ def render_pdf_section_page(folder, data):
         "",
         f"> Section: **{data['title']}**  ",
         f"> PDFs: **{len(data['files'])}**",
-        "",
-        "::: tip PDF preview",
-        "These PDFs are sourced from a top-level folder in the repository and embedded here for quick reading.",
-        ":::",
-        "",
-        "## Section Resources",
-        "",
-        f"- [Open source folder]({data['source_folder_link']})",
-        f"- [Open docs generator]({github_blob(generator_rel)})",
         "",
         "## Files",
         "",
@@ -542,14 +501,6 @@ def render_pdf_section_page(folder, data):
             "---",
             "",
         ]
-
-    lines += [
-        "## Maintainer Note",
-        "",
-        f"This page is generated from the repository folder [{folder}]({data['source_folder_link']}) by "
-        f"[{generator_rel.as_posix()}]({github_blob(generator_rel)}).",
-        "",
-    ]
 
     return "\n".join(lines)
 
@@ -738,21 +689,15 @@ def render_index(sessions, pdf_sections):
         "      text: View on GitHub",
         f"      link: {GITHUB_REPO}",
         "features:",
-        "  - title: Session-wise archive",
-        "    details: Each lab date gets its own generated page with linked programs and clean navigation.",
-        "  - title: Separate PDF library",
-        "    details: Keep notes, question banks, and other PDFs in their own top-level folders like notes/ or questions/.",
-        "  - title: Workflow automation",
-        "    details: Push once and let GitHub Actions regenerate the README, rebuild the site, and deploy Pages.",
+        f'  - title: "{total_sessions}"',
+        '    details: Sessions',
+        f'  - title: "{total_exercises}"',
+        '    details: Programs',
+        f'  - title: "{total_files}"',
+        '    details: Source Files',
+        f'  - title: "{total_pdfs}"',
+        '    details: PDFs',
         "---",
-        "",
-        "## Snapshot",
-        "",
-        f"- Sessions: **{total_sessions}**",
-        f"- Programs: **{total_exercises}**",
-        f"- Source files: **{total_files}**",
-        f"- PDF sections: **{total_pdf_sections}**",
-        f"- PDFs: **{total_pdfs}**",
         "",
     ]
 
@@ -780,13 +725,6 @@ def render_index(sessions, pdf_sections):
         "| Section | PDFs | Source |",
         "|---------|------|--------|",
         pdf_rows or "| No PDF sections yet | 0 | - |",
-        "",
-        "## Study Workflow",
-        "",
-        "1. Update a dated lab folder for code sessions.",
-        "2. Put standalone PDFs inside top-level folders like `notes/` or `questions/`.",
-        "3. Push to `main`.",
-        "4. GitHub Actions regenerates the README, refreshes the docs site, and deploys GitHub Pages.",
         "",
         "## All Sessions",
         "",

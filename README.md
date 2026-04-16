@@ -16,10 +16,3 @@
 | Date | Topic | Programs | Source | Docs |
 |------|-------|----------|--------|------|
 | April 10, 2026 | Binary Search | 3 | [Session README](./10-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/10-04-2026) |
-
-## Workflow
-
-1. Update a dated lab folder for code sessions.
-2. Put standalone PDFs inside top-level section folders like `notes/` or `questions/`.
-3. Push to `main`.
-4. GitHub Actions regenerates the README, rebuilds the docs, and deploys GitHub Pages.
