@@ -18,40 +18,40 @@
 #include <stdio.h>
 
 int binarySearch(int arr[], int size, int target) {
-  int left = 0;
-  int right = size - 1;
+    int left = 0;
+    int right = size - 1;
 
-  while (left <= right) {
-    int mid = left + (right - left) / 2;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
 
-    if (arr[mid] == target) {
-      return mid;
-    } else if (arr[mid] < target) {
-      left = mid + 1;
-    } else {
-      right = mid - 1;
+        if (arr[mid] == target) {
+            return mid;
+        } else if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
     }
-  }
 
-  return -1;
+    return -1;
 }
 
 int main() {
-  // Array Implementation ~ Array Must Be Sorted
-  int arr[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
-  int size = sizeof(arr) / sizeof(arr[0]);
-  int target = 7;
+    // Array Implementation ~ Array Must Be Sorted
+    int arr[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+    int size = sizeof(arr) / sizeof(arr[0]);
+    int target = 7;
 
-  // Calling Binary Search With Array, Size, And Target
-  int result = binarySearch(arr, size, target);
+    // Calling Binary Search With Array, Size, And Target
+    int result = binarySearch(arr, size, target);
 
-  if (result != -1) {
-    printf("Element Found At Index %d\n", result);
-  } else {
-    printf("Element Not Found\n");
-  }
+    if (result != -1) {
+        printf("Element Found At Index %d\n", result);
+    } else {
+        printf("Element Not Found\n");
+    }
 
-  return 0;
+    return 0;
 }
 ```
 
@@ -79,37 +79,37 @@ Element Found At Index 3
 #include <stdio.h>
 
 int binarySearch(int arr[], int size, int target) {
-  if (size == 0) {
-    return -1;
-  }
+    if (size == 0) {
+        return -1;
+    }
 
-  int mid = size / 2;
+    int mid = size / 2;
 
-  if (arr[mid] == target) {
-    return mid;
-  } else if (arr[mid] > target) {
-    return binarySearch(arr, mid, target);
-  } else {
-    return binarySearch(arr + mid + 1, size - mid - 1, target);
-  }
+    if (arr[mid] == target) {
+        return mid;
+    } else if (arr[mid] > target) {
+        return binarySearch(arr, mid, target);
+    } else {
+        return binarySearch(arr + mid + 1, size - mid - 1, target);
+    }
 }
 
 int main() {
-  // Array Implementation ~ Array Must Be Sorted
-  int arr[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
-  int size = sizeof(arr) / sizeof(arr[0]);
-  int target = 7;
+    // Array Implementation ~ Array Must Be Sorted
+    int arr[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
+    int size = sizeof(arr) / sizeof(arr[0]);
+    int target = 7;
 
-  // Calling Binary Search With Array, Size, And Target
-  int result = binarySearch(arr, size, target);
+    // Calling Binary Search With Array, Size, And Target
+    int result = binarySearch(arr, size, target);
 
-  if (result != -1) {
-    printf("Element Found At Index %d\n", result);
-  } else {
-    printf("Element Not Found\n");
-  }
+    if (result != -1) {
+        printf("Element Found At Index %d\n", result);
+    } else {
+        printf("Element Not Found\n");
+    }
 
-  return 0;
+    return 0;
 }
 ```
 
@@ -142,80 +142,80 @@ Element Found At Index 0
 #include <stdio.h>
 
 int bubbleSort(int arr[], int size) {
-  for (int i = 0; i < size - 1; i++) {
-    for (int j = 0; j < size - i - 1; j++) {
-      if (arr[j] > arr[j + 1]) {
-        int temp = arr[j];
-        arr[j] = arr[j + 1];
-        arr[j + 1] = temp;
-      }
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
     }
-  }
 
-  return 0;
+    return 0;
 }
 
 int binarySearch(int arr[], int size, int target) {
-  if (size == 0) {
-    return -1;
-  }
+    if (size == 0) {
+        return -1;
+    }
 
-  int mid = size / 2;
+    int mid = size / 2;
 
-  if (arr[mid] == target) {
-    return mid;
-  } else if (arr[mid] > target) {
-    return binarySearch(arr, mid, target);
-  } else {
-    return binarySearch(arr + mid + 1, size - mid - 1, target);
-  }
+    if (arr[mid] == target) {
+        return mid;
+    } else if (arr[mid] > target) {
+        return binarySearch(arr, mid, target);
+    } else {
+        return binarySearch(arr + mid + 1, size - mid - 1, target);
+    }
 }
 
 int main() {
-  int size;
+    int size;
 
-  // Array Size Input
-  printf("Enter The Number Of Elements : ");
-  scanf("%d", &size);
-  int arr[size];
+    // Array Size Input
+    printf("Enter The Number Of Elements : ");
+    scanf("%d", &size);
+    int arr[size];
 
-  // Taking User Input In Array
-  for (int i = 0; i < size; i++) {
-    printf("Enter Element %d: ", i + 1);
-    scanf("%d", &arr[i]);
-  }
+    // Taking User Input In Array
+    for (int i = 0; i < size; i++) {
+        printf("Enter Element %d: ", i + 1);
+        scanf("%d", &arr[i]);
+    }
 
-  // Printing Unsorted Array
-  printf("Unsorted Array: ");
-  for (int i = 0; i < size; i++) {
-    printf("%d ", arr[i]);
-  }
-  printf("\n");
+    // Printing Unsorted Array
+    printf("Unsorted Array: ");
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
 
-  // Sorting Array
-  bubbleSort(arr, size);
+    // Sorting Array
+    bubbleSort(arr, size);
 
-  // Printing Sorted Array
-  printf("Sorted Array: ");
-  for (int i = 0; i < size; i++) {
-    printf("%d ", arr[i]);
-  }
-  printf("\n");
+    // Printing Sorted Array
+    printf("Sorted Array: ");
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
 
-  // Binary Search
-  int target;
-  printf("Enter The Element To Search: ");
-  scanf("%d", &target);
+    // Binary Search
+    int target;
+    printf("Enter The Element To Search: ");
+    scanf("%d", &target);
 
-  int result = binarySearch(arr, size, target);
+    int result = binarySearch(arr, size, target);
 
-  if (result == -1) {
-    printf("Element Not Found\n");
-  } else {
-    printf("Element Found At Index %d\n", result);
-  }
+    if (result == -1) {
+        printf("Element Not Found\n");
+    } else {
+        printf("Element Found At Index %d\n", result);
+    }
 
-  return 0;
+    return 0;
 }
 ```
 
