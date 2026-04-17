@@ -1,6 +1,8 @@
 # Programming Exercises - April 17, 2026
 
-## Exercise 1 : Finding Minimum And Maximum Of A Array Using Reccursion
+## Exercise 1 : Minimum And Maximum Using Reccursion
+
+## Question : Write A Program To Find Minimum And Maximum Of An Array Using Reccursion
 
 ### Algorithm :
 
@@ -8,18 +10,14 @@
 2. If the segment has only one element (`low == high`):
     - Set both `min` and `max` to that element
 
-3. If the segment has two elements (`high == low + 1`):
-    - Compare both elements
-    - Assign smaller value to `min` and larger value to `max`
-
-4. If the segment has more than two elements:
+3. If the segment has more than two elements:
     - Calculate `mid = low + (high - low) / 2`
     - Recursively find `min1, max1` in the left half (`low → mid`)
     - Recursively find `min2, max2` in the right half (`mid+1 → high`)
     - Set `min = smaller(min1, min2)`
     - Set `max = larger(max1, max2)`
 
-5. Return the final `min` and `max` values
+4. Return the final `min` and `max` values
 
 ### Code :
 
@@ -36,18 +34,7 @@ void findMinMax(int arr[], int low, int high) {
         max = arr[low];
     }
 
-    // Case 2 : Only Two Element
-    if (high == low + 1) {
-        if (arr[high] > arr[low]) {
-            min = arr[low];
-            max = arr[high];
-        } else {
-            min = arr[high];
-            max = arr[low];
-        }
-    }
-
-    // Case 3 : Divide And Conquer
+    // Case 2 : Divide And Conquer
     if (high > low + 1) {
 
         // Split The Array in Two Parts
@@ -73,13 +60,28 @@ void findMinMax(int arr[], int low, int high) {
 }
 
 int main() {
-    int arr[5] = {1, 4, 9, 2, 8};
-    int size = sizeof(arr) / sizeof(arr[0]);
+    int size;
+
+    printf("Enter The Size Of Array : ");
+    scanf("%d", &size);
+
+    int arr[size];
+
+    for (int i = 0; i < size; i++) {
+        printf("Enter The Value Of Element %d : ", i);
+        scanf("%d", &arr[i]);
+    }
+
+    printf("\nThe Array : ");
+
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
 
     findMinMax(arr, 0, size - 1);
 
-    printf("The Maximum Element : %d\n", max);
-    printf("The Minimum Element : %d", min);
+    printf("\n\nThe Maximum Element : %d", max);
+    printf("\nThe Minimum Element : %d", min);
 
     return 0;
 }
@@ -88,6 +90,15 @@ int main() {
 ### Output :
 
 ```bash
-The Maximum Element : 9
+Enter The Size Of Array : 5
+Enter The Value Of Element 0 : 9
+Enter The Value Of Element 1 : 78
+Enter The Value Of Element 2 : 23
+Enter The Value Of Element 3 : 67
+Enter The Value Of Element 4 : 1
+
+The Array : 9 78 23 67 1
+
+The Maximum Element : 78
 The Minimum Element : 1
 ```

@@ -10,18 +10,7 @@ void findMinMax(int arr[], int low, int high) {
         max = arr[low];
     }
 
-    // Case 2 : Only Two Element
-    if (high == low + 1) {
-        if (arr[high] > arr[low]) {
-            min = arr[low];
-            max = arr[high];
-        } else {
-            min = arr[high];
-            max = arr[low];
-        }
-    }
-
-    // Case 3 : Divide And Conquer
+    // Case 2 : Divide And Conquer
     if (high > low + 1) {
 
         // Split The Array in Two Parts
@@ -47,13 +36,28 @@ void findMinMax(int arr[], int low, int high) {
 }
 
 int main() {
-    int arr[5] = {1, 4, 9, 2, 8};
-    int size = sizeof(arr) / sizeof(arr[0]);
+    int size;
+
+    printf("Enter The Size Of Array : ");
+    scanf("%d", &size);
+
+    int arr[size];
+
+    for (int i = 0; i < size; i++) {
+        printf("Enter The Value Of Element %d : ", i);
+        scanf("%d", &arr[i]);
+    }
+
+    printf("\nThe Array : ");
+
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
 
     findMinMax(arr, 0, size - 1);
 
-    printf("The Maximum Element : %d\n", max);
-    printf("The Minimum Element : %d", min);
+    printf("\n\nThe Maximum Element : %d", max);
+    printf("\nThe Minimum Element : %d", min);
 
     return 0;
 }
