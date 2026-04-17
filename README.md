@@ -15,7 +15,7 @@
 
 | Date | Topic | Programs | Source | Docs |
 |------|-------|----------|--------|------|
-| April 17, 2026 | Finding Minimum And Maximum Of A Array Using Reccursion | 1 | [Session README](./17-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/17-04-2026) |
+| April 17, 2026 | Minimum And Maximum Using Reccursion | 1 | [Session README](./17-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/17-04-2026) |
 | April 10, 2026 | Binary Search | 3 | [Session README](./10-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/10-04-2026) |
 
 ## PDF Library
