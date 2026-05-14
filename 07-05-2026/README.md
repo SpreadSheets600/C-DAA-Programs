@@ -6,22 +6,27 @@
 
 ### Algorithm
 
-1. Input the knapsack capacity and the number of items.
-2. For each item, input its profit and weight.
-3. Calculate the profit-to-weight ratio for each item.
-4. Sort the items in descending order based on the profit-to-weight ratio.
-5. Initialize the total profit to 0 and the fraction array x[i] to 0 for all items.
-6. Iterate through the sorted items:
-   - If the current item's weight is less than or equal to the remaining capacity:
-     - Set x[i] = 1 (take the full item).
-     - Add the item's profit to the total profit.
-     - Subtract the item's weight from the remaining capacity.
-   - Else if there is remaining capacity:
-     - Set x[i] = remaining capacity / item's weight (take a fraction).
-     - Add (x[i] * item's profit) to the total profit.
-     - Set remaining capacity to 0.
-   - If no capacity remains, break the loop.
-7. Output the maximum profit and the selected fractions for each item.
+1. Input the number of items n
+2. For each item input:
+    - vlaue v[i]
+    - weight w[i]
+3. Input the capacity of knapsack m
+4. Compute profilt to weight ratio for each item
+    ratio[i] = v[i] / w[i]
+5. Sort the items based on ratio in descending order
+6. Initialize
+    totalProfit = 0
+7. For each item in sorted order:
+    - If w[i] <= w
+        - take the whole item
+        - totalProfit = totalProfit + v[i]
+        - w = w - w[i]
+    - Else:
+        - take functional part at the item
+        - totalProfit = totalProfit + v[i] * (w / w[i])
+        - w = 0
+        - break
+8. Output totalProfit
 
 ### Code
 
