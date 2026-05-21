@@ -4,7 +4,7 @@
 
 ## Question : Write A Program To Find The Minimum Spanning Tree Using Kruskal's Algorithm
 
-### Algorithm
+### Algorithm :
 
 1. Input the number of vertices n
 2. Input the adjacency matrix cost[n][n]
@@ -21,7 +21,7 @@
 9. If MST has fewer than n - 1 edges, report that MST cannot be formed
 10. Otherwise, print the selected edges and minimumCost
 
-### Code
+### Code :
 
 ```c
 #include <stdio.h>
@@ -169,7 +169,7 @@ int main()
 }
 ```
 
-### Output
+### Output :
 
 ```bash
 Enter The Number Of Vertices : 4
@@ -191,7 +191,7 @@ Minimum Cost = 19
 
 ## Question : Write a program to find the minimum number of scalar multiplications needed to multiply a chain of matrices using dynamic programming. Also compute the number of ways to parenthesize the chain
 
-### Algorithm (Dynamic Programming)
+### Algorithm :
 
 1. Let `numberOfMatrices = n` and `Matrices[]` be the dimension array of length `n+1`.
 2. Initialize `cost[i][i] = 0` for all `i` (single matrix multiplication costs zero).
@@ -204,7 +204,7 @@ Minimum Cost = 19
        - If `q < cost[i][j]`, update `cost[i][j] = q` and record `splits[i][j] = k`.
 4. The minimum cost is `cost[0][n-1]`.
 
-### Code
+### Code :
 
 ```cpp
 #include <stdio.h>
@@ -295,7 +295,7 @@ int main()
 }
 ```
 
-### Output
+### Output :
 
 ``` bash
 The Dimensions Of The Matrices Are :
