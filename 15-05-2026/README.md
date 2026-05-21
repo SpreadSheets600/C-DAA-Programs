@@ -186,3 +186,123 @@ Edges In MST :
 
 Minimum Cost = 19
 ```
+
+## Exercise 2 : Matrix Chain Multiplication
+
+## Question : Write a program to find the minimum number of scalar multiplications needed to multiply a chain of matrices using dynamic programming. Also compute the number of ways to parenthesize the chain
+
+### Algorithm (Dynamic Programming)
+
+1. Let `numberOfMatrices = n` and `Matrices[]` be the dimension array of length `n+1`.
+2. Initialize `cost[i][i] = 0` for all `i` (single matrix multiplication costs zero).
+3. For chain lengths `L` from `2` to `n`:
+   - For each starting index `i` from `0` to `n - L`:
+     - Let `j = i + L - 1`.
+     - Initialize `cost[i][j]` to a large value (infinity).
+     - For each split point `k` from `i` to `j-1`:
+       - Compute `q = cost[i][k] + cost[k+1][j] + Matrices[i] * Matrices[k+1] * Matrices[j+1]`.
+       - If `q < cost[i][j]`, update `cost[i][j] = q` and record `splits[i][j] = k`.
+4. The minimum cost is `cost[0][n-1]`.
+
+### Code
+
+```cpp
+#include <stdio.h>
+
+#define INF 999999
+
+int factorial(int n)
+{
+    if (n == 0 || n == 1)
+    {
+        return 1;
+    }
+    else
+    {
+        return n * factorial(n - 1);
+    }
+}
+
+int MatrixChainParenthesization(int numberOfMatrices)
+{
+    // Formula : P(n) = 1/n * (2n - 2)! / (n - 1)! * ((2n - 2) - (n - 1))!
+    return (factorial(2 * numberOfMatrices - 2) / (factorial(numberOfMatrices - 1) * factorial(2 * numberOfMatrices - 2 - (numberOfMatrices - 1)))) / numberOfMatrices;
+}
+
+int MatrixChainMultiplication(int numberOfMatrices, int Matrices[])
+{
+    int cost[numberOfMatrices][numberOfMatrices];
+    int splits[numberOfMatrices][numberOfMatrices];
+
+    for (int i = 0; i < numberOfMatrices; i++)
+    {
+        cost[i][i] = 0; // Cost Of Multiplying One Matrix Is Zero
+    }
+
+    for (int L = 2; L <= numberOfMatrices; L++) // L Is The Chain Length
+    {
+        for (int i = 0; i < numberOfMatrices - L + 1; i++)
+        {
+            int j = i + L - 1;
+            cost[i][j] = INF; // Initialize Cost To Infinity
+
+            for (int k = i; k < j; k++)
+            {
+                // Cost Of Multiplying The Two Subchains And The Resulting Matrix
+                int q = cost[i][k] + cost[k + 1][j] + Matrices[i] * Matrices[k + 1] * Matrices[j + 1];
+
+                if (q < cost[i][j])
+                {
+                    cost[i][j] = q;   // Update Cost If A Cheaper Way Is Found
+                    splits[i][j] = k; // Update Split Point
+                }
+            }
+        }
+    }
+    return cost[0][numberOfMatrices - 1];
+}
+
+int main()
+{
+    int numberOfMatrices;
+
+    printf("Enter The Number Of Matrices : ");
+    if (scanf("%d", &numberOfMatrices) != 1)
+        return 1;
+
+    int matrices[numberOfMatrices + 1];
+
+    printf("Enter The Dimensions Of The Matrices (%d elements) : ", numberOfMatrices + 1);
+    for (int i = 0; i < numberOfMatrices + 1; i++)
+    {
+        if (scanf("%d", &matrices[i]) != 1)
+            return 1;
+    }
+
+    printf("\nThe Dimensions Of The Matrices Are : \n");
+    for (int i = 0; i < numberOfMatrices; i++)
+    {
+        printf("Matrix A%d: %d X %d\n", i + 1, matrices[i], matrices[i + 1]);
+    }
+    printf("\n");
+
+    printf("The Number Of Ways To Parenthesize The Matrices Is : %d\n", MatrixChainParenthesization(numberOfMatrices));
+
+    int minCost = MatrixChainMultiplication(numberOfMatrices, matrices);
+    printf("The Minimum Number Of Scalar Multiplications Required Is : %d\n", minCost);
+
+    return 0;
+}
+```
+
+### Output
+
+``` bash
+The Dimensions Of The Matrices Are :
+Matrix A1: 10 X 20
+Matrix A2: 20 X 30
+Matrix A3: 30 X 40
+
+The Number Of Ways To Parenthesize The Matrices Is : 2
+The Minimum Number Of Scalar Multiplications Required Is : 18000
+```
