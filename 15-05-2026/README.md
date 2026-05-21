@@ -298,6 +298,9 @@ int main()
 ### Output
 
 ```bash
+Enter The Number Of Matrices : 3
+Enter The Dimensions Of The Matrices (4 elements) : 10 20 30 40
+
 The Dimensions Of The Matrices Are :
 Matrix A1: 10 X 20
 Matrix A2: 20 X 30
