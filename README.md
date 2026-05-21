@@ -5,8 +5,8 @@
 ## Snapshot
 
 - Sessions Archived : **4**
-- Programs Documented : **6**
-- Source Files Tracked : **6**
+- Programs Documented : **7**
+- Source Files Tracked : **7**
 - PDF Sections Tracked : **2**
 - PDFs Tracked : **3**
 - Docs Site : [Programs Site](https://spreadsheets600.github.io/C-DAA-Programs/)
@@ -15,7 +15,7 @@
 
 | Date | Topic | Programs | Source | Docs |
 |------|-------|----------|--------|------|
-| May 15, 2026 | Kruskal's Algorithm | 1 | [Session README](./15-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/15-05-2026) |
+| May 15, 2026 | Kruskal's Algorithm, Matrix Chain Multiplication | 2 | [Session README](./15-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/15-05-2026) |
 | May 07, 2026 | Fractional Knapsack Problem | 1 | [Session README](./07-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/07-05-2026) |
 | April 17, 2026 | Minimum And Maximum Using Reccursion | 1 | [Session README](./17-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/17-04-2026) |
 | April 10, 2026 | Binary Search | 3 | [Session README](./10-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/10-04-2026) |
