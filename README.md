@@ -4,9 +4,9 @@
 
 ## Snapshot
 
-- Sessions Archived : **6**
-- Programs Documented : **9**
-- Source Files Tracked : **9**
+- Sessions Archived : **7**
+- Programs Documented : **10**
+- Source Files Tracked : **10**
 - PDF Sections Tracked : **2**
 - PDFs Tracked : **3**
 - Docs Site : [Programs Site](https://spreadsheets600.github.io/C-DAA-Programs/)
@@ -15,6 +15,7 @@
 
 | Date | Topic | Programs | Source | Docs |
 |------|-------|----------|--------|------|
+| June 05, 2026 | Bellman–Ford Algorithm | 1 | [Session README](./05-06-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/05-06-2026) |
 | May 29, 2026 | Floyd–Warshall Algorithm | 1 | [Session README](./29-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/29-05-2026) |
 | May 22, 2026 | Prim's Algorithm | 1 | [Session README](./22-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/22-05-2026) |
 | May 15, 2026 | Kruskal's Algorithm, Matrix Chain Multiplication | 2 | [Session README](./15-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/15-05-2026) |
