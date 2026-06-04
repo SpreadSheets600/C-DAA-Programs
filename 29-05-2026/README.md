@@ -1,6 +1,6 @@
 # Programming Exercises - May 29, 2026
 
-## Exercise : Floyd–Warshall Algorithm
+## Exercise 1 : Floyd–Warshall Algorithm
 
 ### Question : Write a program to compute shortest paths between all pairs of vertices using the Floyd–Warshall algorithm
 

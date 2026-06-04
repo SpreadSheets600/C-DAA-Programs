@@ -1,6 +1,6 @@
 # Programming Exercises - May 22, 2026
 
-## Exercise : Prim's Algorithm
+## Exercise 1 : Prim's Algorithm
 
 ### Question : Write a program to find the Minimum Spanning Tree using Prim's algorithm
 
