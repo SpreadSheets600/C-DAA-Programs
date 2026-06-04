@@ -99,6 +99,6 @@ Enter The Value Of Element 4 : 1
 
 The Array : 9 78 23 67 1
 
-The Maximum Element : 78
-The Minimum Element : 1
+The Maximum Element : 0
+The Minimum Element : 0
 ```
