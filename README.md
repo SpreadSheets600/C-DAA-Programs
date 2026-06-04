@@ -5,7 +5,7 @@
 ## Snapshot
 
 - Sessions Archived : **6**
-- Programs Documented : **7**
+- Programs Documented : **9**
 - Source Files Tracked : **9**
 - PDF Sections Tracked : **2**
 - PDFs Tracked : **3**
@@ -15,8 +15,8 @@
 
 | Date | Topic | Programs | Source | Docs |
 |------|-------|----------|--------|------|
-| May 29, 2026 | Algorithms Practice | 0 | [Session README](./29-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/29-05-2026) |
-| May 22, 2026 | Algorithms Practice | 0 | [Session README](./22-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/22-05-2026) |
+| May 29, 2026 | Floyd–Warshall Algorithm | 1 | [Session README](./29-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/29-05-2026) |
+| May 22, 2026 | Prim's Algorithm | 1 | [Session README](./22-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/22-05-2026) |
 | May 15, 2026 | Kruskal's Algorithm, Matrix Chain Multiplication | 2 | [Session README](./15-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/15-05-2026) |
 | May 07, 2026 | Fractional Knapsack Problem | 1 | [Session README](./07-05-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/07-05-2026) |
 | April 17, 2026 | Minimum And Maximum Using Reccursion | 1 | [Session README](./17-04-2026/README.md) | [Docs Page](https://spreadsheets600.github.io/C-DAA-Programs/exercises/17-04-2026) |
